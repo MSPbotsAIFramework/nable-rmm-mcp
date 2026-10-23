@@ -108,16 +108,16 @@ curl http://localhost:8080/health
 
 No token is required for the health endpoint.
 
-## 授权参数说明 (Authentication)
+## Authentication
 
 Every request to `/mcp` must include the following HTTP headers. Header naming mirrors the fields on the existing "N-able RMM" integration form in app.mspbots.ai (**API Token** / **URL**).
 
-| Header | 类型 | 是否必填 | 默认值 | 枚举值 | 字段描述 | Example |
+| Header | Type | Required | Default | Allowed values | Description | Example |
 |---|---|---|---|---|---|---|
-| `X-Nable-Api-Token` | string | 必填 | 无 | 无(自由文本) | N-able RMM API key,在 **Settings > General Settings > API > Generate** 生成。若 key 被限定到某个 client group,调用只返回该组内客户的数据。 | `X-Nable-Api-Token: <your_api_key>` |
-| `X-Nable-Server` | string | 可选 | `NABLE_BASE_URL` 环境变量(默认 `https://www.am.remote.management`) | 见下方 11 个地区服务器列表 | N-able RMM 按账号所属地区分为 11 个独立服务器,不带该 header 时用环境变量默认值;网关同时服务多地区租户时按请求覆盖。 | `X-Nable-Server: https://www.systemmonitor.co.uk` |
+| `X-Nable-Api-Token` | string | Required | None | None (free text) | N-able RMM API key, generated at **Settings > General Settings > API > Generate**. If the key is restricted to a client group, calls only return data for clients in that group. | `X-Nable-Api-Token: <your_api_key>` |
+| `X-Nable-Server` | string | Optional | `NABLE_BASE_URL` environment variable (default `https://www.am.remote.management`) | See the list of 11 regional servers below | N-able RMM is split into 11 independent servers by the region an account belongs to. Without this header the environment variable default is used; when the gateway serves tenants from multiple regions at once, it is overridden per request. | `X-Nable-Server: https://www.systemmonitor.co.uk` |
 
-`X-Nable-Server` 的 11 个枚举值(地区 → Base URL):
+The 11 allowed values of `X-Nable-Server` (region -> Base URL):
 
 | Region | Base URL |
 |---|---|
@@ -159,36 +159,36 @@ Connect your MCP client with:
 
 ### Clients & Sites
 
-| Tool | 功能 | 参数 |
+| Tool | Description | Parameters |
 |---|---|---|
-| `nable_rmm_get_clients` | 列出该 API key 可见的所有客户 | `devicetype?`("server"/"workstation"/"mobile_device") |
-| `nable_rmm_get_sites` | 列出某客户下的所有站点 | `clientid` (必填, int) |
-| `nable_rmm_create_client` | 新建客户(写操作) | `name` (必填), `timezone?`, `officehoursemail?`, `officehourssms?`, `outofofficehoursemail?`, `outofofficehourssms?` |
-| `nable_rmm_create_site` | 在客户下新建站点(写操作) | `clientid` (必填), `sitename` (必填), `router1?`, `router2?`, `workstationtemplate?`, `servertemplate?` |
+| `nable_rmm_get_clients` | List all clients visible to this API key | `devicetype?` ("server"/"workstation"/"mobile_device") |
+| `nable_rmm_get_sites` | List all sites under a client | `clientid` (required, int) |
+| `nable_rmm_create_client` | Create a new client (write operation) | `name` (required), `timezone?`, `officehoursemail?`, `officehourssms?`, `outofofficehoursemail?`, `outofofficehourssms?` |
+| `nable_rmm_create_site` | Create a new site under a client (write operation) | `clientid` (required), `sitename` (required), `router1?`, `router2?`, `workstationtemplate?`, `servertemplate?` |
 
 ### Devices
 
-| Tool | 功能 | 参数 |
+| Tool | Description | Parameters |
 |---|---|---|
-| `nable_rmm_get_devices_at_client` | 按设备类型列出客户下所有站点的设备 | `clientid` (必填), `devicetype` (必填, "server"/"workstation"/"mobile_device") |
-| `nable_rmm_get_servers` | 列出站点下的服务器设备及在线/检查状态 | `siteid` (必填, int) |
-| `nable_rmm_get_workstations` | 列出站点下的工作站设备及在线/检查状态 | `siteid` (必填, int) |
-| `nable_rmm_get_agentless_assets` | 列出站点下的无代理(扫描发现)资产(N-able 已标记该功能为 deprecated) | `siteid` (必填, int) |
-| `nable_rmm_get_device_monitoring_details` | 获取单个设备的详细监控信息 | `deviceid` (必填, int) |
+| `nable_rmm_get_devices_at_client` | List devices across all sites of a client by device type | `clientid` (required), `devicetype` (required, "server"/"workstation"/"mobile_device") |
+| `nable_rmm_get_servers` | List server devices under a site with online/check status | `siteid` (required, int) |
+| `nable_rmm_get_workstations` | List workstation devices under a site with online/check status | `siteid` (required, int) |
+| `nable_rmm_get_agentless_assets` | List agentless (scan-discovered) assets under a site (N-able has marked this feature as deprecated) | `siteid` (required, int) |
+| `nable_rmm_get_device_monitoring_details` | Get detailed monitoring information for a single device | `deviceid` (required, int) |
 
 ### Checks, Patch & Performance
 
-| Tool | 功能 | 参数 |
+| Tool | Description | Parameters |
 |---|---|---|
-| `nable_rmm_get_failing_checks` | 列出当前失败的检查项 | `clientid?`, `check_type?`("checks"/"tasks"/"random") |
-| `nable_rmm_get_checks` | 列出某设备上配置的所有检查项 | `deviceid` (必填, int) |
-| `nable_rmm_get_check_config` | 获取单个检查项的详细配置(结构因检查类型/OS而异) | `checkid` (必填, int) |
-| `nable_rmm_get_outages` | 列出设备的 outage 记录(开放中或近61天内关闭) | `deviceid` (必填, int) |
-| `nable_rmm_get_drive_space_history` | 磁盘空间检查历史(基于 list_checks 按 check_type 1003/1004 过滤,N-sight 无独立服务) | `deviceid` (必填, int) |
-| `nable_rmm_get_patch_list` | 列出设备上的所有补丁及状态/严重程度 | `deviceid` (必填, int) |
-| `nable_rmm_get_performance_history` | 设备历史性能指标(带宽/磁盘/CPU/内存/网卡) | `deviceid` (必填, int), `interval` (必填, int, 只能是 15 或 60), `since?` |
+| `nable_rmm_get_failing_checks` | List currently failing checks | `clientid?`, `check_type?` ("checks"/"tasks"/"random") |
+| `nable_rmm_get_checks` | List all checks configured on a device | `deviceid` (required, int) |
+| `nable_rmm_get_check_config` | Get the detailed configuration of a single check (structure varies by check type/OS) | `checkid` (required, int) |
+| `nable_rmm_get_outages` | List outage records for a device (open, or closed within the last 61 days) | `deviceid` (required, int) |
+| `nable_rmm_get_drive_space_history` | Disk space check history (filtered from list_checks by check_type 1003/1004; N-sight has no dedicated service) | `deviceid` (required, int) |
+| `nable_rmm_get_patch_list` | List all patches on a device with status/severity | `deviceid` (required, int) |
+| `nable_rmm_get_performance_history` | Historical performance metrics for a device (bandwidth/disk/CPU/memory/NIC) | `deviceid` (required, int), `interval` (required, int, must be 15 or 60), `since?` |
 
-## 测试示例 (Test Example)
+## Test Example
 
 List all servers at a site:
 
